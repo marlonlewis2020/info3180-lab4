@@ -3,8 +3,10 @@ from app import app, db, login_manager
 from flask import render_template, request, redirect, url_for, flash, session, abort
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
+from werkzeug.security import check_password_hash
 from app.models import UserProfile
-from app.forms import LoginForm
+from app.forms import LoginForm, UploadForm
+
 
 
 ###
@@ -18,45 +20,53 @@ def home():
 
 
 @app.route('/about/')
+@login_required
 def about():
     """Render the website's about page."""
     return render_template('about.html', name="Mary Jane")
 
-
 @app.route('/upload', methods=['POST', 'GET'])
+@login_required
 def upload():
     # Instantiate your form class
-
+    photoForm = UploadForm()
     # Validate file upload on submit
-    if form.validate_on_submit():
-        # Get file data and save to your uploads folder
-
-        flash('File Saved', 'success')
-        return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
-
-    return render_template('upload.html')
+    if photoForm.validate_on_submit() or request.method == "POST":
+        photoForm.validate()
+        print("****************************",photoForm.errors.keys())
+        if len(photoForm.errors) == 0:
+            # Get file data and save to your uploads folder
+            photo = request.files['pic'] or photoForm.pic.data
+            file_path = app.config['UPLOAD_FOLDER']
+            file_name = secure_filename(photo.filename)
+            photo.save(os.path.join(file_path,file_name))
+            flash('File Saved', 'success')
+            return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
+    flash_errors(photoForm)
+    return render_template('upload.html', form=photoForm, error_fields=photoForm.errors.keys())
 
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     form = LoginForm()
-
+    
     # change this to actually validate the entire form submission
-    # and not just one field
-    if form.username.data:
-        # Get the username and password values from the form.
-
-        # Using your model, query database for a user based on the username
-        # and password submitted. Remember you need to compare the password hash.
-        # You will need to import the appropriate function to do so.
-        # Then store the result of that query to a `user` variable so it can be
-        # passed to the login_user() method below.
-
-        # Gets user id, load into session
-        login_user(user)
-
-        # Remember to flash a message to the user
-        return redirect(url_for("home"))  # The user should be redirected to the upload form instead
+    if form.validate_on_submit or request.method=="POST":
+        # form.validate()
+        print(form.errors.items())
+        if len(form.errors) == 0:
+            username = form.username.data
+            password = form.password.data
+            
+            user = db.session.execute(db.select(UserProfile).filter_by(username=username)).scalar()
+            if user is not None and check_password_hash(user.password, password):
+                login_user(user)
+                user = load_user(user.id)
+                # Remember to flash a message to the user
+                flash(f"%s, you've successfully logged in!" % user.first_name, "info")
+                return redirect(url_for('upload'))  # The user should be redirected to the upload form instead
+            flash("Invalid username or password","warning")
+        flash_errors(form)
     return render_template("login.html", form=form)
 
 # user_loader callback. This callback is used to reload the user object from
@@ -68,6 +78,7 @@ def load_user(id):
 ###
 # The functions below should be applicable to all Flask apps.
 ###
+            
 
 # Flash errors from the form if validation fails
 def flash_errors(form):
@@ -75,8 +86,7 @@ def flash_errors(form):
         for error in errors:
             flash(u"Error in the %s field - %s" % (
                 getattr(form, field).label.text,
-                error
-), 'danger')
+                error), 'danger')
 
 @app.route('/<file_name>.txt')
 def send_text_file(file_name):

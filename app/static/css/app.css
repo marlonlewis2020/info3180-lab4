@@ -18,3 +18,13 @@ body {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
+
+.required {
+    color: rgb(206, 11, 11);
+    font-weight: bold;
+}
+
+.invalid {
+    /* border-color: rgb(206, 11, 11); */
+    border-width: 3px;
+}
