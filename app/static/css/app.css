@@ -47,3 +47,7 @@ body {
     list-style: none;
     margin-bottom: 15px;
 }
+
+button[type="submit"] {
+    margin-top: 25px;
+}
