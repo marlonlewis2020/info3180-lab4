@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div class="row">
+        <div class="col">
+            <div class="files">
+                <ul>
+                    {% for file, file_dir in files %}
+                        {% if file != ".gitkeep" %}
+                            <li><img src="{{url_for('get_image', filename=file) or file_dir}}" alt="image of {{ file.split('.')[0] }}"/></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
