@@ -1,6 +1,6 @@
 import os
 from app import app, db, login_manager
-from flask import render_template, request, redirect, url_for, flash, session, abort
+from flask import render_template, request, redirect, send_from_directory, url_for, flash, session, abort
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
@@ -24,6 +24,21 @@ def home():
 def about():
     """Render the website's about page."""
     return render_template('about.html', name="Mary Jane")
+
+@app.route("/uploads/<filename>")
+@login_required
+def get_image(filename):
+    uploads = get_uploaded_images()
+    for file, file_dir in uploads:
+        if filename == file:
+            return send_from_directory(file_dir, file)
+    return page_not_found("Image File Not Found!")
+
+@app.route("/files")
+@login_required
+def files():
+    files = get_uploaded_images()
+    return render_template("files.html", files=files)
 
 @app.route('/upload', methods=['POST', 'GET'])
 @login_required
@@ -78,6 +93,13 @@ def load_user(id):
 ###
 # The functions below should be applicable to all Flask apps.
 ###
+
+def get_uploaded_images():
+    photos = []
+    for dir, subdirs, files in os.walk(os.getcwd()+app.config['UPLOAD_FOLDER']):
+        for file in files:
+            photos.append([file, dir])
+    return photos
             
 
 # Flash errors from the form if validation fails
