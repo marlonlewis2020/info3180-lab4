@@ -16,7 +16,7 @@ from app.forms import LoginForm, UploadForm
 @app.route('/')
 def home():
     """Render website's home page."""
-    return render_template('home.html')
+    return render_template('home.html', current_user=current_user)
 
 
 @app.route('/about/')
@@ -60,6 +60,12 @@ def upload():
     flash_errors(photoForm)
     return render_template('upload.html', form=photoForm, error_fields=photoForm.errors.keys())
 
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
