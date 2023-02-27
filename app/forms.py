@@ -10,4 +10,4 @@ class LoginForm(FlaskForm):
     
     
 class UploadForm(FlaskForm):
-    pic = FileField("Photo", validators=[FileRequired(), FileSize(max_size=300000), FileAllowed(["jpg", "png"], message="Image Files Only!")])
+    pic = FileField("Photo", validators=[FileRequired(), FileSize(max_size=4000000), FileAllowed(["jpg", "png"], message="Image Files Only!")])
