@@ -7,7 +7,7 @@
                 <ul>
                     {% for file, file_dir in files %}
                         {% if file != ".gitkeep" %}
-                            <li><img src="{{url_for('get_image', filename=file) or file_dir}}" alt="image of {{ file.split('.')[0] }}"/></li>
+                            <li><a href="{{ url_for('get_image', filename=file) }}" target="_blank" ><img src="{{url_for('get_image', filename=file) or file_dir}}" alt="image of {{ file.split('.')[0] }}"/></a></li>
                         {% endif %}
                     {% endfor %}
                 </ul>
